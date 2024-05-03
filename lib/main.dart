@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:fsf_example/add_content_page.dart';
 import 'package:fsf_example/content.dart';
 import 'package:fsf_example/firebase_options.dart';
 
@@ -60,28 +61,29 @@ class _HomePageState extends State<HomePage> {
                 ),
               ],
             ),
-            body: userSnapshot.data!=null ?
-            StreamBuilder<QuerySnapshot>(
-                stream: contentsQuery(userSnapshot.data!.uid).snapshots(),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const CircularProgressIndicator();
-                  }
-                  return ListView.builder(
-                    reverse: true,
-                    itemCount: snapshot.data!.size,
-                    itemBuilder: (BuildContext context, int idx) {
-                      final content = Content.fromFirestore(snapshot.data!
-                          .docs[idx] as DocumentSnapshot<Map<String, dynamic>>);
-                      return Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Text(content.message),
+            body: userSnapshot.data != null
+                ? StreamBuilder<QuerySnapshot>(
+                    stream: contentsQuery(userSnapshot.data!.uid).snapshots(),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
+                      return ListView.builder(
+                        reverse: true,
+                        itemCount: snapshot.data!.size,
+                        itemBuilder: (BuildContext context, int idx) {
+                          final content = Content.fromFirestore(
+                              snapshot.data!.docs[idx]
+                                  as DocumentSnapshot<Map<String, dynamic>>);
+                          return Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Text(content.message),
+                          );
+                        },
                       );
                     },
-                  );
-                },
-
-            ): Text('Authenticate first'),
+                  )
+                : const Center(child: Text('Authenticate first')),
             floatingActionButton: userSnapshot.data != null
                 ? FloatingActionButton(
                     onPressed: () {
@@ -96,7 +98,16 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _openAddContentPage(String? userId) {
-    FirebaseFirestore.instance.collection('users').doc(userId).collection('contents').add(
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => const AddContentPage(),
+      ),
+    );
+    FirebaseFirestore.instance
+        .collection('users')
+        .doc(userId)
+        .collection('contents')
+        .add(
           Content(
             message: 'test',
           ).toFirestore(),

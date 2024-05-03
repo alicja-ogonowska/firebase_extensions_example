@@ -1,16 +1,21 @@
-# fsf_example
+# Firebase Extensions Example
 
-A new Flutter project.
+A simple Flutter app showing the possible usage of Firebase Extensions.
 
 ## Getting Started
+To run this app, you need to
+1. Create app in Firebase
+2. Authenticate to Firebase on your machine
+2. Activate Flutterfire CLI on your machine
+3. Configure it to use the Firebase project you already created
 
-This project is a starting point for a Flutter application.
+$ curl -sL https://firebase.tools | bash
 
-A few resources to get you started if this is your first Flutter project:
+$ firebase login
+$ dart pub global activate flutterfire_cli
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+$ flutterfire configure
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+4. In Firebase console, enable Authentication (anonymous authentication),
+Cloud Firestore (don't forget about security rules!) and Storage.
+
