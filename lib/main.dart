@@ -68,8 +68,10 @@ class _HomePageState extends State<HomePage> {
                       if (snapshot.connectionState == ConnectionState.waiting) {
                         return const Center(child: CircularProgressIndicator());
                       }
+                      if (snapshot.data!.size == 0) {
+                        return const Center(child: Text('No data yet'));
+                      }
                       return ListView.builder(
-                        reverse: true,
                         itemCount: snapshot.data!.size,
                         itemBuilder: (BuildContext context, int idx) {
                           final content = Content.fromFirestore(
@@ -77,7 +79,19 @@ class _HomePageState extends State<HomePage> {
                                   as DocumentSnapshot<Map<String, dynamic>>);
                           return Padding(
                             padding: const EdgeInsets.all(8.0),
-                            child: Text(content.message),
+                            child: Row(
+                              children: [
+                                Image.network(
+                                  content.imageUrl!,
+                                  width: MediaQuery.of(context).size.width / 2,
+                                ),
+                                const SizedBox(width: 20),
+                                Text(
+                                  content.transcription ??
+                                      'No transcription available',
+                                ),
+                              ],
+                            ),
                           );
                         },
                       );
@@ -103,14 +117,5 @@ class _HomePageState extends State<HomePage> {
         builder: (context) => const AddContentPage(),
       ),
     );
-    FirebaseFirestore.instance
-        .collection('users')
-        .doc(userId)
-        .collection('contents')
-        .add(
-          Content(
-            message: 'test',
-          ).toFirestore(),
-        );
   }
 }

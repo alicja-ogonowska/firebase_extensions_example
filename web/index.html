@@ -48,10 +48,11 @@
           serviceWorkerVersion: serviceWorkerVersion,
         },
         onEntrypointLoaded: function(engineInitializer) {
-          engineInitializer.initializeEngine().then(function(appRunner) {
-            appRunner.runApp();
-          });
-        }
+          let config = { renderer: 'html' };
+          engineInitializer.initializeEngine(config).then(function(appRunner) {
+          appRunner.runApp();
+        });
+}
       });
     });
   </script>

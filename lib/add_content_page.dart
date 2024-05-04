@@ -1,8 +1,13 @@
 import 'dart:io';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:fsf_example/audio_recorder.dart';
+import 'package:fsf_example/content.dart';
+import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 
 class AddContentPage extends StatefulWidget {
@@ -13,9 +18,10 @@ class AddContentPage extends StatefulWidget {
 }
 
 class _AddContentPageState extends State<AddContentPage> {
-  FirebaseStorage storage = FirebaseStorage.instance;
-  File? _photo;
+  XFile? _photo;
+  String? _recordingPath;
   final ImagePicker _picker = ImagePicker();
+  bool _isUploading = false;
 
   @override
   Widget build(BuildContext context) {
@@ -38,7 +44,7 @@ class _AddContentPageState extends State<AddContentPage> {
                           fit: BoxFit.cover,
                         )
                       : Image.file(
-                          _photo!,
+                          File(_photo!.path),
                           width: MediaQuery.of(context).size.height / 2,
                           fit: BoxFit.cover,
                         )
@@ -56,13 +62,23 @@ class _AddContentPageState extends State<AddContentPage> {
                       ],
                     ),
               const SizedBox(height: 20),
-              ElevatedButton(
-                  onPressed: _startRecording,
-                  child: const Text('Record description')),
-              ElevatedButton(
-                onPressed: _canSave() ? _onSave : null,
-                child: const Text('Save'),
-              )
+              _recordingPath != null
+                  ? const Text('Recording provided')
+                  : Recorder(
+                      onStop: (path) {
+                        setState(() {
+                          debugPrint('Recording path: $path');
+                          _recordingPath = path;
+                        });
+                      },
+                    ),
+              const SizedBox(height: 20),
+              _isUploading
+                  ? const CircularProgressIndicator()
+                  : ElevatedButton(
+                      onPressed: _canSave() ? _onSave : null,
+                      child: const Text('Save'),
+                    )
             ],
           ),
         ),
@@ -75,7 +91,7 @@ class _AddContentPageState extends State<AddContentPage> {
 
     setState(() {
       if (image != null) {
-        _photo = File(image.path);
+        _photo = image;
       } else {
         debugPrint('Image was not selected.');
       }
@@ -87,18 +103,79 @@ class _AddContentPageState extends State<AddContentPage> {
 
     setState(() {
       if (image != null) {
-        _photo = File(image.path);
+        _photo = image;
       } else {
         debugPrint('No photo was selected.');
       }
     });
   }
 
-  void _onSave() {
-    debugPrint('Saving');
+  bool _canSave() => _photo != null && _recordingPath != null;
+
+  void _onSave() async {
+    setState(() {
+      _isUploading = true;
+    });
+
+    try {
+      if (_photo != null && _recordingPath != null) {
+        final userId = FirebaseAuth.instance.currentUser!.uid;
+        final photoUrl = await _uploadPhoto(userId);
+        final recordingUrl = await _uploadRecording(userId);
+
+        FirebaseFirestore.instance
+            .collection('users')
+            .doc(userId)
+            .collection('contents')
+            .add(
+              Content(
+                imageUrl: photoUrl,
+                recordingUrl: recordingUrl,
+              ).toFirestore(),
+            )
+            .whenComplete(() => Navigator.of(context).pop());
+      }
+    } catch (e) {
+      debugPrint(e.toString());
+    }
   }
 
-  bool _canSave() => _photo != null;
+  Future<String?> _uploadRecording(String userId) async {
+    final Reference recordingRef = FirebaseStorage.instance
+        .ref()
+        .child('recordings/$userId/${_recordingPath!.split('/').last}.wav');
 
-  void _startRecording() {}
+    late UploadTask recordingUploadTask;
+    if (kIsWeb) {
+      final uri = Uri.parse(_recordingPath!);
+      final client = http.Client();
+      final response = await client.get(uri);
+
+      recordingUploadTask = recordingRef.putData(response.bodyBytes);
+    } else {
+      recordingUploadTask = recordingRef.putFile(File(_recordingPath!));
+    }
+    String? url;
+    await recordingUploadTask.whenComplete(() async {
+      url = await recordingRef.getDownloadURL();
+    });
+    return url;
+  }
+
+  Future<String?> _uploadPhoto(String userId) async {
+    final Reference photoRef =
+        FirebaseStorage.instance.ref().child('images/$userId/${_photo!.name}');
+
+    late UploadTask uploadTask;
+    if (kIsWeb) {
+      uploadTask = photoRef.putData(await _photo!.readAsBytes());
+    } else {
+      uploadTask = photoRef.putFile(File(_photo!.path));
+    }
+    String? url;
+    await uploadTask.whenComplete(() async {
+      url = await photoRef.getDownloadURL();
+    });
+    return url;
+  }
 }

@@ -1,11 +1,15 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Content {
-  final String message;
+  final String? imageUrl;
+  final String? recordingUrl;
+  final String? transcription;
   final Timestamp? timestamp;
 
   Content({
-    required this.message,
+    required this.imageUrl,
+    required this.recordingUrl,
+    this.transcription,
     this.timestamp,
   });
 
@@ -13,15 +17,19 @@ class Content {
       DocumentSnapshot<Map<String, dynamic>> snapshot) {
     final data = snapshot.data();
     return Content(
-      message: data?['message'],
+      imageUrl: data?['imageUrl'],
+      recordingUrl: data?['recordingUrl'],
+      transcription: data?['transcription'],
       timestamp: data?['timestamp'],
     );
   }
 
   Map<String, dynamic> toFirestore() {
     return {
-      'message': message,
+      'imageUrl': imageUrl,
+      'recordingUrl': recordingUrl,
       'timestamp': timestamp ?? Timestamp.now(),
+      'transcription': transcription,
     };
   }
 }
