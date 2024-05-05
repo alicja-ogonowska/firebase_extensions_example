@@ -3,13 +3,11 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class Content {
   final String? imageUrl;
   final String? recordingUrl;
-  final String? transcription;
   final Timestamp? timestamp;
 
   Content({
     required this.imageUrl,
     required this.recordingUrl,
-    this.transcription,
     this.timestamp,
   });
 
@@ -19,7 +17,6 @@ class Content {
     return Content(
       imageUrl: data?['imageUrl'],
       recordingUrl: data?['recordingUrl'],
-      transcription: data?['transcription'],
       timestamp: data?['timestamp'],
     );
   }
@@ -29,7 +26,6 @@ class Content {
       'imageUrl': imageUrl,
       'recordingUrl': recordingUrl,
       'timestamp': timestamp ?? Timestamp.now(),
-      'transcription': transcription,
     };
   }
 }

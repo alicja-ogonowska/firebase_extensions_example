@@ -161,7 +161,7 @@ class _AddContentPageState extends State<AddContentPage> {
     }
     String? url;
     await recordingUploadTask.whenComplete(() async {
-      url = await recordingRef.getDownloadURL();
+      url =  recordingRef.fullPath;
     });
     return url;
   }

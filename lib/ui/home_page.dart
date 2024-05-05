@@ -1,8 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:fsf_example/model/content.dart';
+import 'package:fsf_example/model/transcription.dart';
 import 'package:fsf_example/ui/add_content_page.dart';
 
 class HomePage extends StatefulWidget {
@@ -59,13 +59,37 @@ class _HomePageState extends State<HomePage> {
                                 Image.network(
                                   content.imageUrl!,
                                   width: MediaQuery.of(context).size.width / 2,
+                                  height: MediaQuery.of(context).size.width / 2,
+                                  fit: BoxFit.contain,
+                                  errorBuilder: (_, __, ___) => Placeholder(
+                                    fallbackWidth:
+                                        MediaQuery.of(context).size.width / 2,
+                                    fallbackHeight:
+                                        MediaQuery.of(context).size.width / 2,
+                                  ),
                                 ),
                                 const SizedBox(width: 20),
                                 Expanded(
-                                  child: Text(
-                                    content.transcription ??
-                                        'No transcription available',
-                                  ),
+                                  child: StreamBuilder<QuerySnapshot>(
+                                      stream: transcriptionQuery(
+                                              content.recordingUrl!)
+                                          .snapshots(),
+                                      builder: (context, snapshot) {
+                                        if (snapshot.hasData &&
+                                            snapshot.data!.size > 0) {
+                                          final transcription = Transcription
+                                              .fromFirestore(snapshot
+                                                      .data!.docs.first
+                                                  as DocumentSnapshot<
+                                                      Map<String, dynamic>>);
+                                          return Text(
+                                            transcription.value ??
+                                                'No transcription available',
+                                            textAlign: TextAlign.start,
+                                          );
+                                        }
+                                        return const SizedBox.shrink();
+                                      }),
                                 ),
                               ],
                             ),
