@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:fsf_example/model/content.dart';
 import 'package:fsf_example/ui/add_content_page.dart';
@@ -60,9 +61,11 @@ class _HomePageState extends State<HomePage> {
                                   width: MediaQuery.of(context).size.width / 2,
                                 ),
                                 const SizedBox(width: 20),
-                                Text(
-                                  content.transcription ??
-                                      'No transcription available',
+                                Expanded(
+                                  child: Text(
+                                    content.transcription ??
+                                        'No transcription available',
+                                  ),
                                 ),
                               ],
                             ),

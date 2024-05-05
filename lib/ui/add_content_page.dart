@@ -5,8 +5,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:fsf_example/ui/audio_recorder.dart';
 import 'package:fsf_example/model/content.dart';
+import 'package:fsf_example/ui/audio_recorder.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 
@@ -78,7 +78,8 @@ class _AddContentPageState extends State<AddContentPage> {
                   : ElevatedButton(
                       onPressed: _canSave() ? _onSave : null,
                       child: const Text('Save'),
-                    )
+                    ),
+              const SizedBox(height: 20),
             ],
           ),
         ),
@@ -141,9 +142,12 @@ class _AddContentPageState extends State<AddContentPage> {
   }
 
   Future<String?> _uploadRecording(String userId) async {
-    final Reference recordingRef = FirebaseStorage.instance
-        .ref()
-        .child('recordings/$userId/${_recordingPath!.split('/').last}.wav');
+    final Reference recordingRef = FirebaseStorage.instanceFor(
+      bucket: 'fir-extensions-example-recordings',
+    ).ref().child(
+          'recordings/$userId/${_recordingPath!.split('/').last}${kIsWeb ? ''
+              '.wav' : ''}',
+        );
 
     late UploadTask recordingUploadTask;
     if (kIsWeb) {

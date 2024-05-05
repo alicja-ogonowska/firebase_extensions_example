@@ -34,7 +34,7 @@ class Content {
   }
 }
 
-contentsQuery(String userId) => FirebaseFirestore.instance
+Query contentsQuery(String userId) => FirebaseFirestore.instance
     .collection('users')
     .doc(userId)
     .collection('contents')
