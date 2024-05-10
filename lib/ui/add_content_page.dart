@@ -155,13 +155,16 @@ class _AddContentPageState extends State<AddContentPage> {
       final client = http.Client();
       final response = await client.get(uri);
 
-      recordingUploadTask = recordingRef.putData(response.bodyBytes);
+      recordingUploadTask = recordingRef.putData(
+        response.bodyBytes,
+        SettableMetadata(contentType: 'audio/wav'),
+      );
     } else {
       recordingUploadTask = recordingRef.putFile(File(_recordingPath!));
     }
     String? url;
     await recordingUploadTask.whenComplete(() async {
-      url =  recordingRef.fullPath;
+      url = recordingRef.fullPath;
     });
     return url;
   }
@@ -172,7 +175,10 @@ class _AddContentPageState extends State<AddContentPage> {
 
     late UploadTask uploadTask;
     if (kIsWeb) {
-      uploadTask = photoRef.putData(await _photo!.readAsBytes());
+      uploadTask = photoRef.putData(
+        await _photo!.readAsBytes(),
+        SettableMetadata(contentType: 'image/jpeg'),
+      );
     } else {
       uploadTask = photoRef.putFile(File(_photo!.path));
     }

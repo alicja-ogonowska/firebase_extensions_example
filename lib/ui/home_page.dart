@@ -2,7 +2,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:fsf_example/model/content.dart';
-import 'package:fsf_example/model/transcription.dart';
 import 'package:fsf_example/ui/add_content_page.dart';
 
 class HomePage extends StatefulWidget {
@@ -21,7 +20,7 @@ class _HomePageState extends State<HomePage> {
           return Scaffold(
             appBar: AppBar(
               backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-              title: const Text('Home'),
+              title: const Text('Saved contents'),
               actions: [
                 ElevatedButton(
                   onPressed: () async {
@@ -46,56 +45,7 @@ class _HomePageState extends State<HomePage> {
                       if (snapshot.data!.size == 0) {
                         return const Center(child: Text('No data yet'));
                       }
-                      return ListView.builder(
-                        itemCount: snapshot.data!.size,
-                        itemBuilder: (BuildContext context, int idx) {
-                          final content = Content.fromFirestore(
-                              snapshot.data!.docs[idx]
-                                  as DocumentSnapshot<Map<String, dynamic>>);
-                          return Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Row(
-                              children: [
-                                Image.network(
-                                  content.imageUrl!,
-                                  width: MediaQuery.of(context).size.width / 2,
-                                  height: MediaQuery.of(context).size.width / 2,
-                                  fit: BoxFit.contain,
-                                  errorBuilder: (_, __, ___) => Placeholder(
-                                    fallbackWidth:
-                                        MediaQuery.of(context).size.width / 2,
-                                    fallbackHeight:
-                                        MediaQuery.of(context).size.width / 2,
-                                  ),
-                                ),
-                                const SizedBox(width: 20),
-                                Expanded(
-                                  child: StreamBuilder<QuerySnapshot>(
-                                      stream: transcriptionQuery(
-                                              content.recordingUrl!)
-                                          .snapshots(),
-                                      builder: (context, snapshot) {
-                                        if (snapshot.hasData &&
-                                            snapshot.data!.size > 0) {
-                                          final transcription = Transcription
-                                              .fromFirestore(snapshot
-                                                      .data!.docs.first
-                                                  as DocumentSnapshot<
-                                                      Map<String, dynamic>>);
-                                          return Text(
-                                            transcription.value ??
-                                                'No transcription available',
-                                            textAlign: TextAlign.start,
-                                          );
-                                        }
-                                        return const SizedBox.shrink();
-                                      }),
-                                ),
-                              ],
-                            ),
-                          );
-                        },
-                      );
+                      return _ContentList(data: snapshot.data!);
                     },
                   )
                 : const Center(child: Text('Authenticate first')),
@@ -117,6 +67,58 @@ class _HomePageState extends State<HomePage> {
       MaterialPageRoute(
         builder: (context) => const AddContentPage(),
       ),
+    );
+  }
+}
+
+class _ContentList extends StatelessWidget {
+  const _ContentList({required this.data});
+
+  final QuerySnapshot<Object?> data;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView.builder(
+      itemCount: data.size,
+      itemBuilder: (BuildContext context, int idx) {
+        final content = Content.fromFirestore(
+          data.docs[idx] as DocumentSnapshot<Map<String, dynamic>>,
+        );
+        return Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Row(
+            children: [
+              Image.network(
+                content.imageUrl!,
+                width: MediaQuery.of(context).size.width / 2,
+                errorBuilder: (_, __, ___) => Placeholder(
+                  fallbackWidth: MediaQuery.of(context).size.width / 2,
+                ),
+              ),
+              const SizedBox(width: 20),
+              Expanded(
+                child: _TranscriptionInfo(content: content),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _TranscriptionInfo extends StatelessWidget {
+  const _TranscriptionInfo({
+    required this.content,
+  });
+
+  final Content content;
+
+  @override
+  Widget build(BuildContext context) {
+    return const Text(
+      'No transcription available',
+      textAlign: TextAlign.start,
     );
   }
 }
