@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:fsf_example/model/content.dart';
+import 'package:fsf_example/model/transcription.dart';
 import 'package:fsf_example/ui/add_content_page.dart';
 
 class HomePage extends StatefulWidget {
@@ -116,9 +117,27 @@ class _TranscriptionInfo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Text(
-      'No transcription available',
-      textAlign: TextAlign.start,
-    );
+    return StreamBuilder<QuerySnapshot>(
+        stream: transcriptionQuery(content.recordingUrl!).snapshots(),
+        builder: (context, snapshot) {
+          const noTranscriptionText = Text(
+            'No transcription available',
+            textAlign: TextAlign.start,
+          );
+
+          if (snapshot.hasData && snapshot.data!.size > 0) {
+            final transcription = Transcription.fromFirestore(
+              snapshot.data!.docs.first
+                  as DocumentSnapshot<Map<String, dynamic>>,
+            );
+            return transcription.value != null
+                ? Text(
+                    transcription.value!,
+                    textAlign: TextAlign.start,
+                  )
+                : noTranscriptionText;
+          }
+          return noTranscriptionText;
+        });
   }
 }
