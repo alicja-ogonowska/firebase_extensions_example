@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:fsf_example/main.dart';
 import 'package:fsf_example/model/content.dart';
 import 'package:fsf_example/ui/audio_recorder.dart';
 import 'package:http/http.dart' as http;
@@ -143,7 +144,7 @@ class _AddContentPageState extends State<AddContentPage> {
 
   Future<String?> _uploadRecording(String userId) async {
     final Reference recordingRef = FirebaseStorage.instanceFor(
-      bucket: 'fir-extensions-example-recordings',
+      bucket: recordingBucketName,
     ).ref().child(
           'recordings/$userId/${_recordingPath!.split('/').last}${kIsWeb ? ''
               '.wav' : ''}',

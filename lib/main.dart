@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:fsf_example/firebase_options.dart';
 import 'package:fsf_example/ui/home_page.dart';
 
+// TODO
+const recordingBucketName = 'YOUR-RECORDING-BUCKET-NAME';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
@@ -26,4 +29,3 @@ class MyApp extends StatelessWidget {
     );
   }
 }
-
