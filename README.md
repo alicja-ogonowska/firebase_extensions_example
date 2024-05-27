@@ -45,7 +45,7 @@ To run this app locally, follow these steps:
      - Enable Anonymous Authentication.
    - In the **Firestore Database** section:
      - Create a Firestore database and set the security rules according to your needs. Here's an example of basic rules:
-       ```json
+       ```
        service cloud.firestore {
          match /databases/{database}/documents {
            match /{document=**} {
@@ -56,7 +56,7 @@ To run this app locally, follow these steps:
        ```
    - In the **Storage** section:
      - Set up Firebase Storage and configure its security rules. Example:
-       ```json
+       ```
        service firebase.storage {
          match /b/{bucket}/o {
            match /{allPaths=**} {
